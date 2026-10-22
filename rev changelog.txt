@@ -1,3 +1,28 @@
+v4.5.127 (MSHex fork - performance and fixes)
+Performance (measured in tests/bench.lua against 4.5.126, ~2,500-unit mission):
+-Scheduler rewritten as a binary heap: mist.main no longer scans every scheduled task 100 times a second. 1,000 repeating + 2,000 one-shot tasks: ~7x less CPU; mist.removeFunction is O(1) (~300x faster with a large queue)
+-Alive-unit tracker refreshes existing mist.DBs.aliveUnits entries in place instead of deep-copying every unit every second (~4x less CPU, ~60% less garbage)
+-Databases share one table per unit/group across unitsByName/ById/ByCat/ByNum/humans and groupsByName/ById; the ME* snapshot is taken in one pass. Mission load ~4x faster, ~60% less memory after init. Entries are still replaced, never edited, on update; mist.getGroupData etc. still return copies
+-Pending dynAdd data is kept in a name-keyed lookup instead of being scanned with stringMatch for every spawned unit (200-spawn ingest ~20x faster)
+-dynAdd/dynAddStatic resolve country and category through cached lookups and store only the fields the DB needs
+-pointInPolygon no longer copies the polygon (~15x faster, zero allocation); getUnitsInZones resolves zones once per call and compares squared distances
+-stringCondense uses a single pattern (~4x faster stringMatch); deepCopy has a fast path and no per-call closure; ID getters no longer deep-copy numbers
+Fixes:
+-updateDBTables raised an error every run (yield check outside its loop) so mist.getLastDBUpdateTime() never advanced: flag functions using unit table shortcuts never saw newly spawned units
+-dbUpdate subtracted ground height from RADIO altitudes once per pending dynAdd entry instead of once
+-Units not spawned through dynAdd were stored with nil skill/alt_type; they now get High/BARO as intended
+-A repeating task that removed itself caused the next task in the queue to be skipped for a tick
+-Tasks scheduled in the same tick now run in due-time order
+-getUnitsInZones counted a unit once per overlapping polygon zone
+-mist.forceAddToDB passed the wrong table to the DB writer and failed for groups
+-An updated group that moved to a different country/category was dropped from mist.DBs.units
+-Rewritten units lost their dbNum
+-NATO callsigns JTAC/aircraft/unique were nested inside TRANSPORT by a missing brace (old paths kept as aliases)
+-dynAddStatic logged every spawned object at warning level; dynAdd called getPayload(nil) for new aircraft
+Added:
+-mist.getScheduledFunctionCount()
+-tests/: DCS API mock, regression tests, behaviour trace, scheduler fuzz and benchmark (run with a Lua 5.1 interpreter)
+
 v82
 -Its been 3 years since I last published an update apparently, so I barely remember
 -Fixed a locality issue that caused altitudes to become silly if spawning groups a specific way
