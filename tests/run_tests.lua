@@ -370,5 +370,34 @@ test('misc: ID getters return numbers, callsign table layout', function()
 	eq(nato.TRANSPORT.JTAC, nato.JTAC, 'old path alias')
 end)
 
+test('loading MIST a second time keeps the running copy', function()
+	local first = mist
+	local tasks = mist.getScheduledFunctionCount()
+	local n = 0
+	mist.scheduleFunction(function() n = n + 1 end, {}, timer.getTime() + 0.1, 0.1)
+	dofile(mistPath)
+	eq(mist, first, 'mist table was replaced')
+	eq(mist.getScheduledFunctionCount(), tasks + 1, 'scheduled tasks were lost')
+	local found = false
+	for _, l in ipairs(dcs.log) do
+		if l:find('not loaded: Mist') then found = true end
+	end
+	truthy(found, 'skip was not logged')
+	-- only one main loop: a 0.1 s repeat runs ~10 times per second, not ~20
+	dcs.advance(1.05)
+	truthy(n >= 9 and n <= 11, 'task ran ' .. n .. ' times in 1 s (duplicate main loop?)')
+end)
+
+test('an older MIST already loaded is kept, with a warning', function()
+	mist = {majorVersion = 4, minorVersion = 3, build = 74, scheduleFunction = function() end}
+	dofile(mistPath)
+	eq(mist.build, 74)
+	local warned = false
+	for _, l in ipairs(dcs.log) do
+		if l:find('^WARNING') and l:find('4.3.74 is already running') then warned = true end
+	end
+	truthy(warned, 'no warning about the older copy')
+end)
+
 print(string.format('\n%d passed, %d failed', passed, failed))
 os.exit(failed == 0 and 0 or 1)

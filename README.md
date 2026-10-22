@@ -25,7 +25,7 @@ Donate. If you want to. Likely will go into the "Better than a X52 HOTAS Fund". 
 
 Fork notes (MSHex)
 ====
-This fork continues MIST from 4.5.126 with performance work and bug fixes; see `rev changelog.txt` (v4.5.127) for the full list. It is a drop-in replacement: load `mist.lua` exactly as before.
+This fork continues MIST from 4.5.126 with performance work and bug fixes; see `rev changelog.txt` (v4.5.127 and later) for the full list. It is a drop-in replacement: load `mist.lua` exactly as before. From 4.5.128 it only loads once per Lua environment, so it is safe to load the same file from both the mission and DCS Olympus (`Mods\Services\Olympus\Scripts\mist.lua`).
 
 Tests and benchmarks run outside DCS against a mock of the scripting engine, using a Lua 5.1 interpreter (the version DCS embeds), from the repository root:
 

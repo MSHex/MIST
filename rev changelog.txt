@@ -1,3 +1,6 @@
+v4.5.128 (MSHex fork)
+-Load-once guard: if MIST is already loaded in the same Lua environment, a second copy logs a line and stops instead of replacing it. Lets the same mist.lua be loaded by the mission and by tools such as DCS Olympus without two copies running. If the running copy is older, a warning says so.
+
 v4.5.127 (MSHex fork - performance and fixes)
 Performance (measured in tests/bench.lua against 4.5.126, ~2,500-unit mission):
 -Scheduler rewritten as a binary heap: mist.main no longer scans every scheduled task 100 times a second. 1,000 repeating + 2,000 one-shot tasks: ~7x less CPU; mist.removeFunction is O(1) (~300x faster with a large queue)

@@ -30,12 +30,37 @@ Official Releases <https://github.com/mrSkortch/MissionScriptingTools/tree/maste
 @author Grimes
 @author lukrop
 ]]
+
+-- Load-once guard. If a working MIST is already loaded in this Lua environment
+-- (for example the mission loaded it and another tool such as DCS Olympus loads
+-- it again), keep the running copy: loading a second one would leave the first
+-- copy's update loop and event handlers running alongside the new one.
+if type(mist) == 'table' and type(mist.majorVersion) == 'number' and type(mist.scheduleFunction) == 'function' then
+	local thisVersion = {4, 5, 128}	-- keep in step with the version below
+	local loaded = {mist.majorVersion, mist.minorVersion or 0, mist.build or 0}
+	local loadedStr = loaded[1] .. '.' .. loaded[2] .. '.' .. loaded[3]
+	local thisStr = thisVersion[1] .. '.' .. thisVersion[2] .. '.' .. thisVersion[3]
+	local older = false
+	for i = 1, 3 do
+		if loaded[i] ~= thisVersion[i] then
+			older = loaded[i] < thisVersion[i]
+			break
+		end
+	end
+	if older then
+		env.warning('Mist ' .. thisStr .. ' not loaded: Mist ' .. loadedStr .. ' is already running in this environment. Load ' .. thisStr .. ' first to use it.', false)
+	else
+		env.info('Mist ' .. thisStr .. ' not loaded: Mist ' .. loadedStr .. ' is already running in this environment.')
+	end
+	return
+end
+
 mist = {}
 
 -- don't change these
 mist.majorVersion = 4
 mist.minorVersion = 5
-mist.build = 127
+mist.build = 128
 
 -- forward declaration of log shorthand
 local log
